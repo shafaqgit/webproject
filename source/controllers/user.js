@@ -60,7 +60,7 @@ exports.signin=(req,res)=>{
         if(user){
             if(user.authenticate(req.body.password)){
                 //generate token
-                const token=jwt.sign({_id:user._id},process.env.JWT_KEY,{expiresIn:'1h'});
+                const token=jwt.sign({_id:user._id, role:user.role},process.env.JWT_KEY,{expiresIn:'1h'});
                 const {_id, firstName, lastName,cnic, email ,gender,role}= user;
                 res.status(200).json({
                     token,
@@ -89,10 +89,16 @@ exports.signin=(req,res)=>{
     })
 }
 exports.requireSignin=(req,res,next)=>{
-
+    if(req.query.authorization){
     const token=req.query.authorization.split(" ")[1];
     const user=jwt.verify(token, process.env.JWT_KEY)
     req.user=user;
+    }
+    else{
+        return res.status(400).json({
+            message:"User is not authorized"
+        })
+    }
     next();
 
 }
